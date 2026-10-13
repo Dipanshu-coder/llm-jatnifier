@@ -101,3 +101,56 @@ class Polisher:
                     raise
                 raise PolishError(f"Polishing request failed: {exc}") from exc
             return self.format_only(text)
+
+
+# Friendly provider presets for one-line use.
+_PROVIDERS = {
+    "huggingface": ("https://router.huggingface.co/v1", "Qwen/Qwen2.5-7B-Instruct", "HF_TOKEN"),
+    "hf": ("https://router.huggingface.co/v1", "Qwen/Qwen2.5-7B-Instruct", "HF_TOKEN"),
+    "nvidia": ("https://integrate.api.nvidia.com/v1", "meta/llama-3.1-8b-instruct", "NVIDIA_API_KEY"),
+    "ollama": ("http://localhost:11434/v1", "qwen2.5:3b", None),
+    "lmstudio": ("http://localhost:1234/v1", "your-loaded-model", None),
+}
+
+
+def polish(
+    text: str,
+    provider: str = "huggingface",
+    model: Optional[str] = None,
+    api_key: Optional[str] = None,
+    style: str = "general",
+    base_url: Optional[str] = None,
+) -> str:
+    """One-call helper for Colab or desktop.
+
+    Examples:
+        polish("raw answer", api_key="hf_...")
+        polish("raw answer", provider="nvidia", api_key="...")
+        polish("raw answer", provider="ollama")
+        polish("raw answer", base_url="http://localhost:8000/v1",
+               model="my-model", api_key="...")
+    """
+    name = provider.lower().replace("-", "").replace("_", "")
+    if name not in _PROVIDERS and not base_url:
+        raise ValueError(
+            f"Unknown provider {provider!r}. Choose huggingface, nvidia, ollama, "
+            "lmstudio, or pass base_url for an OpenAI-compatible endpoint."
+        )
+    preset_url, preset_model, key_env = _PROVIDERS.get(
+        name, (None, None, None)
+    )
+    url = base_url or preset_url or os.getenv("POLISHER_BASE_URL")
+    chosen_model = model or preset_model or os.getenv("POLISHER_MODEL")
+    chosen_key = api_key or (os.getenv(key_env) if key_env else None) or os.getenv("POLISHER_API_KEY")
+    if not url or not chosen_model:
+        raise ValueError("Set base_url and model for your provider.")
+    if not chosen_key:
+        if name in ("ollama", "lmstudio"):
+            chosen_key = "ollama"
+        else:
+            raise ValueError(
+                f"Missing API key. Pass api_key=... or set {key_env or 'POLISHER_API_KEY'}."
+            )
+    return Polisher(base_url=url, model=chosen_model, api_key=chosen_key).polish(
+        text, profile=style, raise_errors=True
+    )
