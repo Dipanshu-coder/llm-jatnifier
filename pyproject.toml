@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "llm-output-polisher"
+version = "0.1.0"
+description = "Provider-agnostic readability layer for local and open-source LLM outputs"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+dependencies = ["openai>=1.30.0"]
+
+[project.optional-dependencies]
+api = ["fastapi>=0.110", "uvicorn[standard]>=0.27"]
+dev = ["pytest>=8"]
+
+[project.scripts]
+llm-polish = "llm_output_polisher.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["llm_output_polisher*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
