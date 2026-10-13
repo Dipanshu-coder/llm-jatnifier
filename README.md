@@ -1,68 +1,75 @@
 # LLM Jatnifier
 
-**Make any LLM answer easier to read — in Colab or on your computer.**
+**Ask a question and automatically get a cleaner answer.** Use the chat UI, or call the Python function from your own project.
 
-## Easiest way: Google Colab
+## Automatic mode (chat UI)
 
-[**Open the ready-to-run Colab notebook**](https://colab.research.google.com/github/Dipanshu-coder/llm-jatnifier/blob/main/notebooks/LLM_Jatnifier_Quickstart.ipynb)
+### Google Colab
+Run these cells:
 
-1. Run the install cell.
-2. Choose a provider.
-3. Enter your API key when asked.
-4. Paste your text and run.
+```python
+!git clone https://github.com/Dipanshu-coder/llm-jatnifier.git
+%cd llm-jatnifier
+!pip install -e ".[ui]"
 
-## Use it in one line
+from app import demo
+demo.launch(share=True)
+```
 
-Install once:
+Colab will show a temporary link to the interface. Open it, choose a provider, enter your API key, ask your question, and click **Ask and polish**. Jatnifier gets the model's answer and polishes it automatically. The original answer is available in a dropdown.
+
+**Security:** a Gradio share link makes the interface reachable by people who have the link while it is running. Do not share it with others when using your API key, and stop the notebook when finished.
+
+### Your computer
+Install Python, then run in a terminal:
+
+```bash
+git clone https://github.com/Dipanshu-coder/llm-jatnifier.git
+cd llm-jatnifier
+pip install -e ".[ui]"
+python app.py
+```
+
+Open the local address printed in the terminal.
+
+### Providers
+The interface includes Hugging Face, NVIDIA, Ollama, and LM Studio. Hosted providers need a valid API key and model access. For local providers, start Ollama or LM Studio first and make sure the selected model is available. You can override the default model name in the interface.
+
+## Use the polishing function in your own code
+
+Install the core package:
 
 ```bash
 pip install git+https://github.com/Dipanshu-coder/llm-jatnifier.git
 ```
 
-Then use in Colab, Jupyter, VS Code, or a Python script:
+Then:
 
 ```python
 from llm_output_polisher import polish
 
-print(polish("paste your raw LLM answer here", api_key="hf_YOUR_TOKEN"))
+improved = polish(
+    "Paste an existing LLM answer here",
+    provider="huggingface",
+    api_key="YOUR_HUGGINGFACE_TOKEN",
+    style="study",
+)
+print(improved)
 ```
 
-That defaults to Hugging Face. Your API key is never hard-coded by Jatnifier; for repeat use, set `HF_TOKEN` as an environment variable instead.
+Supported styles: `general`, `study`, `concise`, and `technical`.
 
-## Pick another provider
+Other provider examples:
 
 ```python
-from llm_output_polisher import polish
-
-# Hugging Face
-print(polish("raw answer", provider="huggingface", api_key="hf_..."))
-
-# NVIDIA NIM
-print(polish("raw answer", provider="nvidia", api_key="YOUR_NVIDIA_KEY"))
-
-# Ollama running on this computer
-print(polish("raw answer", provider="ollama"))
-
-# LM Studio running on this computer
-print(polish("raw answer", provider="lmstudio", model="your-loaded-model"))
-
-# Any OpenAI-compatible endpoint
-print(polish("raw answer", base_url="http://localhost:8000/v1",
-             model="your-model", api_key="YOUR_KEY"))
+polish("raw answer", provider="nvidia", api_key="YOUR_NVIDIA_KEY")
+polish("raw answer", provider="ollama")
+polish("raw answer", provider="lmstudio", model="your-loaded-model")
 ```
 
-Choose a style with `style="study"`, `"technical"`, `"concise"`, or `"general"`.
+## What it does (and doesn't do)
 
-## Simple local cleanup — no model or API key
-
-```python
-from llm_output_polisher import Polisher
-print(Polisher.format_only("###heading\n\n\n• first point"))
-```
-
-## What it does
-
-Jatnifier takes text from any LLM, sends it to the provider you choose for editing, and returns cleaner Markdown. It does not host the LLM itself. Hosted Hugging Face/NVIDIA calls need internet and provider access; Ollama/LM Studio need a model running locally. Model-backed polishing makes an extra model call and can add cost/latency. It improves presentation, not factual accuracy.
+The automatic chat UI makes one call to generate an answer and a second call to improve its presentation. That adds some latency and may incur provider usage costs. Polishing can still introduce errors, so it does not guarantee factual accuracy. This app does **not** automatically change answers inside the ChatGPT, Gemini, or other existing websites; doing that would require a separate browser extension or integration.
 
 ## Tests
 
