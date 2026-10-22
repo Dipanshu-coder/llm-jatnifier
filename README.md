@@ -79,3 +79,21 @@ pytest
 ```
 
 MIT License.
+
+## Experimental personal-agent MVP
+
+A separate local-first planner prototype is available in `personal_agent_mvp.py`. It turns a goal into a reviewable plan and can save a local checklist only after the user approves. It does not yet browse the web, connect to email/WhatsApp, or carry out external actions.
+
+Run it locally after installing the UI dependencies:
+
+```bash
+pip install -e ".[ui]"
+# Optional: configure a local OpenAI-compatible model
+# AGENT_BASE_URL=http://localhost:11434/v1
+# AGENT_MODEL=qwen2.5:3b
+python personal_agent_mvp.py
+```
+
+The planner uses `AGENT_BASE_URL`, `AGENT_MODEL`, and `AGENT_API_KEY`; it falls back to the existing `POLISHER_*` environment variables. It launches locally by default. Do not expose it publicly without authentication, rate limits, and appropriate data protections.
+
+See [the India-first personal-agent MVP plan](docs/INDIA_PERSONAL_AGENT_MVP.md) for scope, architecture, safety constraints, and release checklist. REA is a separate developer tool for inspecting authorized app artifacts; it is not Meta Muse source code or a dependency of this prototype.
