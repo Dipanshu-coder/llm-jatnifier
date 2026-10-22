@@ -1,11 +1,10 @@
 # LLM Jatnifier
 
-**Ask a question and automatically get a cleaner answer.** Use the chat UI, or call the Python function from your own project.
+**Ask a question, get an answer, and automatically improve its readability.** Jatnifier is a provider-agnostic Python library with a Gradio chat UI and an optional HTTP API.
 
-## Automatic mode (chat UI)
+## Quick start
 
 ### Google Colab
-Run these cells:
 
 ```python
 !git clone https://github.com/Dipanshu-coder/llm-jatnifier.git
@@ -16,12 +15,11 @@ from app import demo
 demo.launch(share=True)
 ```
 
-Colab will show a temporary link to the interface. Open it, choose a provider, enter your API key, ask your question, and click **Ask and polish**. Jatnifier gets the model's answer and polishes it automatically. The original answer is available in a dropdown.
+Choose a provider, enter your API key (or use a local model), ask a question, and click **Ask and polish**. The original answer remains available in a dropdown.
 
-**Security:** a Gradio share link makes the interface reachable by people who have the link while it is running. Do not share it with others when using your API key, and stop the notebook when finished.
+A Gradio share link is accessible to anyone who has it while the notebook is running. Avoid sharing it when entering API credentials and stop the notebook when finished.
 
-### Your computer
-Install Python, then run in a terminal:
+### Run locally
 
 ```bash
 git clone https://github.com/Dipanshu-coder/llm-jatnifier.git
@@ -30,46 +28,71 @@ pip install -e ".[ui]"
 python app.py
 ```
 
-Open the local address printed in the terminal.
+## Providers
 
-### Providers
-The interface includes Hugging Face, NVIDIA, Ollama, and LM Studio. Hosted providers need a valid API key and model access. For local providers, start Ollama or LM Studio first and make sure the selected model is available. You can override the default model name in the interface.
+The interface supports Hugging Face, NVIDIA, Ollama, and LM Studio. Hosted providers need valid credentials and model access. For local providers, start the model server and ensure the selected model is loaded.
 
-## Use the polishing function in your own code
+| Provider | Default model | Credential |
+|---|---|---|
+| Hugging Face | `Qwen/Qwen2.5-7B-Instruct` | `HF_TOKEN` |
+| NVIDIA | `meta/llama-3.1-8b-instruct` | `NVIDIA_API_KEY` |
+| Ollama | `qwen2.5:3b` | Local server |
+| LM Studio | Your loaded model | Local server |
 
-Install the core package:
+## Python library
 
 ```bash
 pip install git+https://github.com/Dipanshu-coder/llm-jatnifier.git
 ```
 
-Then:
-
 ```python
 from llm_output_polisher import polish
 
-improved = polish(
+clean = polish(
     "Paste an existing LLM answer here",
     provider="huggingface",
     api_key="YOUR_HUGGINGFACE_TOKEN",
     style="study",
 )
-print(improved)
+print(clean)
 ```
 
-Supported styles: `general`, `study`, `concise`, and `technical`.
+Styles: `general`, `study`, `concise`, and `technical`. The editor is instructed to preserve meaning, figures, uncertainty, code, commands, equations, URLs, and quoted text. Always verify important facts: rewriting can still introduce mistakes.
 
-Other provider examples:
+## HTTP API
 
-```python
-polish("raw answer", provider="nvidia", api_key="YOUR_NVIDIA_KEY")
-polish("raw answer", provider="ollama")
-polish("raw answer", provider="lmstudio", model="your-loaded-model")
+Install the API dependencies and start the server:
+
+```bash
+pip install -e ".[api]"
+uvicorn llm_output_polisher.api:app --host 127.0.0.1 --port 8000
 ```
 
-## What it does (and doesn't do)
+- `GET /health` — health check.
+- `POST /polish` — polish one text.
+- `POST /polish/batch` — process up to 20 texts in one request.
 
-The automatic chat UI makes one call to generate an answer and a second call to improve its presentation. That adds some latency and may incur provider usage costs. Polishing can still introduce errors, so it does not guarantee factual accuracy. This app does **not** automatically change answers inside the ChatGPT, Gemini, or other existing websites; doing that would require a separate browser extension or integration.
+Example single request:
+
+```bash
+curl -X POST http://127.0.0.1:8000/polish \
+  -H "Content-Type: application/json" \
+  -d '{"text":"###heading\n\n• item","profile":"study","format_only":true}'
+```
+
+Example batch request:
+
+```json
+{
+  "texts": ["###First answer", "• Second answer"],
+  "profile": "general",
+  "format_only": true
+}
+```
+
+Send that JSON to `POST /polish/batch`. The endpoint accepts 1–20 texts, each up to 100,000 characters, and processes them sequentially to avoid flooding a provider. Set `format_only: true` for local Markdown cleanup without any model calls. The interactive API schema is available at `/docs` when the server is running.
+
+**Deployment safety:** the optional API is intended for local/trusted deployment and currently has no built-in user authentication or rate limiting. Do not expose it directly to the public internet until authentication, rate limits, HTTPS, and provider-cost controls are configured. Never commit API keys.
 
 ## Tests
 
@@ -77,5 +100,9 @@ The automatic chat UI makes one call to generate an answer and a second call to 
 pip install -e ".[dev]"
 pytest
 ```
+
+## Scope
+
+Jatnifier improves presentation of model-generated text; it does not guarantee factual accuracy and does not automatically modify answers inside other AI websites. Browser extensions or explicit integrations would be separate projects.
 
 MIT License.
