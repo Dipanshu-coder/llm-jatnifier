@@ -124,4 +124,14 @@ with gr.Blocks(title="Personal AI Agent",theme=gr.themes.Soft()) as demo:
     log=gr.Textbox(label="Activity log",lines=7,interactive=False)
     go.click(run_agent,inputs=[prompt,chat,base,model,key],outputs=[chat,log]).then(lambda:"",outputs=[prompt])
     prompt.submit(run_agent,inputs=[prompt,chat,base,model,key],outputs=[chat,log]).then(lambda:"",outputs=[prompt])
-if __name__=="__main__": demo.launch()
+if __name__=="__main__":
+    # Set both variables on any public deployment; fail closed rather than expose an unauthenticated app.
+    username=os.getenv("AGENT_USERNAME","").strip()
+    password=os.getenv("AGENT_PASSWORD","")
+    if os.getenv("RENDER") and (not username or not password):
+        raise RuntimeError("Public Render deployment requires AGENT_USERNAME and AGENT_PASSWORD.")
+    demo.launch(
+        server_name="0.0.0.0",
+        server_port=int(os.getenv("PORT","7860")),
+        auth=(username,password) if username and password else None,
+    )
