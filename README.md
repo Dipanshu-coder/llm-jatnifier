@@ -80,20 +80,30 @@ pytest
 
 MIT License.
 
-## Experimental personal-agent MVP
 
-A separate local-first planner prototype is available in `personal_agent_mvp.py`. It turns a goal into a reviewable plan and can save a local checklist only after the user approves. It does not yet browse the web, connect to email/WhatsApp, or carry out external actions.
+## Tool-using personal AI agent (new prototype)
 
-Run it locally after installing the UI dependencies:
+The newer `personal_agent.py` prototype is more than the planner: it supports multi-step model tool-calling, public web search, arithmetic, local SQLite notes, and an activity log.
+
+### Run locally
 
 ```bash
 pip install -e ".[ui]"
-# Optional: configure a local OpenAI-compatible model
-# AGENT_BASE_URL=http://localhost:11434/v1
-# AGENT_MODEL=qwen2.5:3b
-python personal_agent_mvp.py
+# Configure an OpenAI-compatible provider; example for Hugging Face:
+# Windows PowerShell:
+$env:AGENT_BASE_URL="https://router.huggingface.co/v1"
+$env:AGENT_MODEL="Qwen/Qwen2.5-7B-Instruct"
+$env:AGENT_API_KEY="your-provider-key"
+python personal_agent.py
 ```
 
-The planner uses `AGENT_BASE_URL`, `AGENT_MODEL`, and `AGENT_API_KEY`; it falls back to the existing `POLISHER_*` environment variables. It launches locally by default. Do not expose it publicly without authentication, rate limits, and appropriate data protections.
+You can also configure those variables in your hosting provider's environment settings. Use a model/provider that supports OpenAI-compatible tool/function calling. Local Ollama is possible with `AGENT_BASE_URL=http://localhost:11434/v1` and a compatible model already installed.
 
-See [the India-first personal-agent MVP plan](docs/INDIA_PERSONAL_AGENT_MVP.md) for scope, architecture, safety constraints, and release checklist. REA is a separate developer tool for inspecting authorized app artifacts; it is not Meta Muse source code or a dependency of this prototype.
+### Current capability boundary
+
+- **Works in this prototype:** public web search, calculations, save/list local notes, multi-step tool loop, conversation history while the session remains open.
+- **Not implemented yet:** secure multi-user accounts, remote database sync, Gmail/WhatsApp/calendar connectors, browser automation for logged-in sites, purchases, sending messages, background jobs, mobile app, and Meta Muse's private internals.
+- **Safety:** do not deploy it publicly without authentication, per-user data isolation, rate limits, secret management, and SSRF protections hardened for your hosting environment. Notes are stored in a local SQLite file. A shared server would need user-isolated storage before real users are allowed.
+- The web-search HTML parser is a prototype and may break if the search provider changes its markup. Check cited sources before relying on results.
+
+This is an independent project inspired by the personal-agent product category. It is not Meta Muse, does not use Meta's private code or APIs, and does not bypass regional access controls.
