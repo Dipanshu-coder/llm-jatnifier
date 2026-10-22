@@ -79,3 +79,35 @@ pytest
 ```
 
 MIT License.
+
+
+## Tool-using personal AI agent (new prototype)
+
+The newer `personal_agent.py` prototype is more than the planner: it supports multi-step model tool-calling, public web search, arithmetic, local SQLite notes, and an activity log.
+
+### Run locally
+
+```bash
+pip install -e ".[ui]"
+# Configure an OpenAI-compatible provider; example for Hugging Face:
+# Windows PowerShell:
+$env:AGENT_BASE_URL="https://router.huggingface.co/v1"
+$env:AGENT_MODEL="Qwen/Qwen2.5-7B-Instruct"
+$env:AGENT_API_KEY="your-provider-key"
+python personal_agent.py
+```
+
+You can also configure those variables in your hosting provider's environment settings. Use a model/provider that supports OpenAI-compatible tool/function calling. Local Ollama is possible with `AGENT_BASE_URL=http://localhost:11434/v1` and a compatible model already installed.
+
+### Current capability boundary
+
+- **Works in this prototype:** public web search, calculations, save/list local notes, multi-step tool loop, conversation history while the session remains open.
+- **Not implemented yet:** secure multi-user accounts, remote database sync, Gmail/WhatsApp/calendar connectors, browser automation for logged-in sites, purchases, sending messages, background jobs, mobile app, and Meta Muse's private internals.
+- **Safety:** do not deploy it publicly without authentication, per-user data isolation, rate limits, secret management, and SSRF protections hardened for your hosting environment. Notes are stored in a local SQLite file. A shared server would need user-isolated storage before real users are allowed.
+- The web-search HTML parser is a prototype and may break if the search provider changes its markup. Check cited sources before relying on results.
+
+This is an independent project inspired by the personal-agent product category. It is not Meta Muse, does not use Meta's private code or APIs, and does not bypass regional access controls.
+
+For a public Render deployment, also set `AGENT_USERNAME` and `AGENT_PASSWORD`; the app refuses to start on Render without both. The free Render filesystem may be ephemeral, so local notes can be lost on restart. Do not use this prototype for sensitive personal data.
+
+See [the architecture and safety plan](docs/INDIA_PERSONAL_AGENT_MVP.md) for the intended next steps.

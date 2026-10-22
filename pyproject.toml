@@ -14,10 +14,13 @@ dependencies = ["openai>=1.30.0"]
 [project.optional-dependencies]
 api = ["fastapi>=0.110", "uvicorn[standard]>=0.27"]
 ui = ["gradio>=4.44"]
-dev = ["pytest>=8"]
+dev = ["pytest>=8", "gradio>=4.44"]
 
 [project.scripts]
 llm-polish = "llm_output_polisher.cli:main"
+
+[tool.setuptools]
+py-modules = ["personal_agent", "personal_agent_mvp"]
 
 [tool.setuptools.packages.find]
 where = ["."]
