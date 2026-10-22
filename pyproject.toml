@@ -19,6 +19,9 @@ dev = ["pytest>=8", "gradio>=4.44"]
 [project.scripts]
 llm-polish = "llm_output_polisher.cli:main"
 
+[tool.setuptools]
+py-modules = ["personal_agent", "personal_agent_mvp"]
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["llm_output_polisher*"]
